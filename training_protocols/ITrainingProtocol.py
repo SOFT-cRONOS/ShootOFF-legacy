@@ -17,7 +17,7 @@ class ITrainingProtocol():
         # Called whenever a shot is detected that hit a target. Region is
         # the region that was hit and tags is a dictionary containing
         # all of region's tags in value = tags["tag_name"].
-	pass
+	    pass
 
     def reset(self, targets):
         # Reset the training protocols state to it's initial state.

@@ -24,7 +24,10 @@ from target_editor import TargetEditor
 import time
 from training_protocols.protocol_operations import ProtocolOperations
 from threading import Thread
-import Tkinter, tkFileDialog, tkMessageBox, ttk
+import tkinter as Tkinter
+from tkinter import filedialog
+from tkinter import messagebox as tkMessageBox
+from tkinter import ttk
 
 FEED_FPS = 30  # ms
 SHOT_MARKER = "shot_marker"
@@ -63,8 +66,8 @@ class MainWindow:
 
         #OpenCV reads the frame in BGR, but PIL uses RGB, so we if we don't
         #convert it, the colors will be off.
-        webcam_image = cv2.cvtColor(self._webcam_frame, cv2.cv.CV_BGR2RGB)
-
+        #webcam_image = cv2.cvtColor(self._webcam_frame, cv2.cv.CV_BGR2RGB)
+        webcam_image = cv2.cvtColor(self._webcam_frame, cv2.COLOR_BGR2RGB)
         if self._calibrate_projector:
             webcam_image = self._projector_calibrator.calibrate_projector(webcam_image)
 
@@ -73,7 +76,8 @@ class MainWindow:
             if self._interference_iterations > 0:
                 self._interference_iterations -= 1
 
-                frame_bw = cv2.cvtColor(self._webcam_frame, cv2.cv.CV_BGR2GRAY)
+                #frame_bw = cv2.cvtColor(self._webcam_frame, cv2.cv.CV_BGR2GRAY)
+                frame_bw = cv2.cvtColor(self._webcam_frame, cv2.COLOR_BGR2GRAY)
                 (thresh, webcam_image) = cv2.threshold(frame_bw,
                     self._preferences[configurator.LASER_INTENSITY], 255,
                     cv2.THRESH_BINARY)
@@ -114,13 +118,13 @@ class MainWindow:
             self._window.after(FEED_FPS, self.refresh_frame)
 
     def detect_shots(self):
-        if (self._webcam_frame is None):
+        if self._webcam_frame is None:
             self._window.after(self._preferences[configurator.DETECTION_RATE], self.detect_shots)
             return
 
         # Makes feed black and white
-        frame_bw = cv2.cvtColor(self._webcam_frame, cv2.cv.CV_BGR2GRAY)
-
+        frame_bw = cv2.cvtColor(self._webcam_frame, cv2.COLOR_BGR2GRAY)
+        
         # Threshold the image
         (thresh, frame_thresh) = cv2.threshold(frame_bw, 
             self._preferences[configurator.LASER_INTENSITY], 255, cv2.THRESH_BINARY)
@@ -135,17 +139,17 @@ class MainWindow:
         frame_height = len(frame_thresh)
         frame_width = len(frame_thresh[0])
 
-        sub_height = frame_height / 3
-        sub_width = frame_width / 3
+        sub_height = int(frame_height / 3)
+        sub_width = int(frame_width / 3)
 
         for sub_y in range(0, frame_height, sub_height):
             for sub_x in range(0, frame_width, sub_width):
                 # Find min and max values on the black and white frame
-                min_max = cv2.minMaxLoc(frame_thresh[sub_y:sub_y + sub_height,sub_x:sub_x + sub_width])
+                min_max = cv2.minMaxLoc(frame_thresh[sub_y:sub_y + sub_height, sub_x:sub_x + sub_width])
                             
                 # The minimum and maximum are the same if there was
                 # nothing detected
-                if (min_max[0] != min_max[1]):
+                if min_max[0] != min_max[1]:
                     x = min_max[3][0] + sub_x
                     y = min_max[3][1] + sub_y
 
@@ -153,14 +157,11 @@ class MainWindow:
 
                     # If we couldn't detect a laser color, it's probably not a
                     # shot
-                    if (laser_color is not None and
-                        self._preferences[configurator.IGNORE_LASER_COLOR] not in laser_color):
-
+                    if laser_color is not None and self._preferences[configurator.IGNORE_LASER_COLOR] not in laser_color:
                         self.handle_shot(laser_color, x, y)
 
-        if self._shutdown == False:
-            self._window.after(self._preferences[configurator.DETECTION_RATE],
-                self.detect_shots)
+        if not self._shutdown:
+            self._window.after(self._preferences[configurator.DETECTION_RATE], self.detect_shots)
 
     def handle_shot(self, laser_color, x, y):	
         if (self._pause_shot_detection):
@@ -835,8 +836,10 @@ class MainWindow:
         self._cv = cv2.VideoCapture(self._preferences[configurator.VIDCAM])
 
         if self._cv.isOpened():
-            width = self._cv.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH)
-            height = self._cv.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT)
+            #width = self._cv.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH)
+            width = self._cv.get(cv2.CAP_PROP_FRAME_WIDTH)
+            #height = self._cv.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT)
+            height = self._cv.get(cv2.CAP_PROP_FRAME_HEIGHT)
 
             # If the resolution is too low, try to force it higher.
             # Some users have drivers that default to extremely low
@@ -854,7 +857,9 @@ class MainWindow:
             self.build_gui((width, height))
             self._protocol_operations = ProtocolOperations(self._webcam_canvas, self)
 
-            fps = self._cv.get(cv2.cv.CV_CAP_PROP_FPS)
+            #fps = self._cv.get(cv2.cv.CV_CAP_PROP_FPS)
+            fps = self._cv.get(cv2.CAP_PROP_FPS)
+
             if fps <= 0:
                 self._logger.info("Couldn't get webcam FPS, defaulting to 30.")
             else:

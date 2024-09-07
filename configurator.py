@@ -110,9 +110,10 @@ class Configurator():
 
         if args.marker_radius:
             preferences[MARKER_RADIUS] = int(args.marker_radius)
-            
-        if args.vidcam >= 0:
-            preferences[VIDCAM] = int(args.vidcam)
+        
+        vidcam = args.vidcam if args.vidcam is not None else -1
+        if vidcam >= 0:  # Usa 'vidcam' en lugar de 'args.vidcam'
+            preferences[VIDCAM] = int(vidcam)
 
         if args.ignore_laser_color:
             preferences[IGNORE_LASER_COLOR] = args.ignore_laser_color

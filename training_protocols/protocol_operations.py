@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 import pyaudio
-import pyttsx
+import pyttsx3 as pyttsx
 from threading import Thread
 from training_protocols.timer_interval_window import TimerIntervalWindow
 import wave

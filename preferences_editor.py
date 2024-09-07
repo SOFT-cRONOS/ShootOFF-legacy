@@ -2,11 +2,14 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import ConfigParser
+#import ConfigParser
+import configparser
 import configurator
 import os
 import re
-import Tkinter, ttk
+#import Tkinter, ttk
+import tkinter as Tkinter
+from tkinter import ttk
 
 DEFAULT_DETECTION_RATE = 100 #ms
 DEFAULT_LASER_INTENSITY = 230
@@ -21,7 +24,7 @@ DEFAULT_VIDCAM = 1
 class PreferencesEditor():
     @staticmethod
     def map_configuration():
-        config = ConfigParser.SafeConfigParser()
+        config = configparser.SafeConfigParser()
         config.read("settings.conf")
         preferences = {}    
 
@@ -29,7 +32,7 @@ class PreferencesEditor():
             try:
                 preferences[configurator.DETECTION_RATE] = config.getint("ShootOFF",
                     configurator.DETECTION_RATE)
-            except ConfigParser.NoOptionError:
+            except configparser.NoOptionError:
                 preferences[configurator.DETECTION_RATE] = DEFAULT_DETECTION_RATE
 
             try:

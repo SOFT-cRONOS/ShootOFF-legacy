@@ -4,7 +4,8 @@
 
 import cv2
 import math
-import Tkinter, ttk
+from tkinter import ttk
+
 
 class ProjectorCalibrator():
     def get_projected_bbox(self):

@@ -4,7 +4,8 @@
 
 from canvas_manager import CanvasManager
 from tag_parser import TagParser
-import Tkinter, ttk
+import tkinter as Tkinter
+from tkinter import ttk
 
 ARENA_BORDER_WIDTH = 3
 

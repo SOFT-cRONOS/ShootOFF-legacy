@@ -2,7 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import Tkinter, tkMessageBox
+import tkinter as Tkinter
+from tkinter import messagebox
 
 class TagEditorPopup():
     def _add_tag(self, event):

@@ -8,7 +8,10 @@ import os
 from PIL import Image, ImageTk
 from tag_editor_popup import TagEditorPopup
 from target_pickler import TargetPickler
-import Tkinter, tkFileDialog, tkMessageBox, ttk
+import tkinter as Tkinter
+from tkinter import filedialog
+from tkinter import messagebox
+from tkinter import ttk
 
 CURSOR = 0
 IMAGE = 1
