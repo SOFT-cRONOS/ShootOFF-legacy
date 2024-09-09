@@ -32,7 +32,7 @@ class TimedHolsterDrill(ITrainingProtocol):
     def setup_wait(self):
         # Give the shooter 10 seconds to position themselves
         self._wait_event.wait(10)
-        self._operations.say("Shooter... make ready")
+        self._operations.say("Preparados, Shooter... make ready")
 
         if self._repeat_protocol:
             self._random_delay = Thread(target=self.random_delay,

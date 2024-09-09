@@ -4,6 +4,7 @@
 
 import cv2
 import math
+import tkinter as Tkinter
 from tkinter import ttk
 
 
@@ -12,10 +13,12 @@ class ProjectorCalibrator():
         return (self._top_x, self._top_y, self._bottom_x, self._bottom_y)
 
     def calibrate_projector(self, webcam_image):
-        bw = cv2.cvtColor(webcam_image, cv2.cv.CV_BGR2GRAY)
+        #bw = cv2.cvtColor(webcam_image, cv2.cv.CV_BGR2GRAY)
+        bw = cv2.cvtColor(webcam_image, cv2.COLOR_BGR2GRAY)
         (thresh, bw_image) = cv2.threshold(bw, self._threshold_slider.get(), 255, cv2.THRESH_BINARY)
-        contours,h = cv2.findContours(bw_image, cv2.cv.CV_RETR_EXTERNAL,
-                        cv2.cv.CV_CHAIN_APPROX_SIMPLE)
+        #contours,h = cv2.findContours(bw_image, cv2.cv.CV_RETR_EXTERNAL,
+        #                cv2.cv.CV_CHAIN_APPROX_SIMPLE)
+        contours, h = cv2.findContours(bw_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         # We have temps because if we had a lock them lose it, we want to remember
         # the old lock until we get a new one (just in case the lock gets lots

@@ -4,6 +4,7 @@
 
 import cv2
 
+
 class Shot:
     # Use the default color and radius for the
     # shot marker. Create a new shoot at coord
@@ -62,3 +63,5 @@ class Shot:
             self._canvas.itemconfig(self._canvas_id, fill=self._marker_color, 
                 outline=self._marker_color)
 
+
+ 

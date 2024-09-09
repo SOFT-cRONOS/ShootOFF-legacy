@@ -9,7 +9,8 @@ import configurator
 from configurator import Configurator
 import cv2
 import glob
-import imp
+import importlib as imp
+import importlib.util
 import numpy
 import os
 from PIL import Image, ImageTk
@@ -28,6 +29,9 @@ import tkinter as Tkinter
 from tkinter import filedialog
 from tkinter import messagebox as tkMessageBox
 from tkinter import ttk
+
+from sound_manager import Sound_manager
+
 
 FEED_FPS = 30  # ms
 SHOT_MARKER = "shot_marker"
@@ -163,6 +167,7 @@ class MainWindow:
         if not self._shutdown:
             self._window.after(self._preferences[configurator.DETECTION_RATE], self.detect_shots)
 
+
     def handle_shot(self, laser_color, x, y):	
         if (self._pause_shot_detection):
             return 
@@ -217,7 +222,9 @@ class MainWindow:
             self._preferences[configurator.MARKER_RADIUS],
             laser_color, timestamp)
         self._shots.append(new_shot)
+        #aca dibuja en la pantalla
         new_shot.draw_marker()
+
 
         if hit_projector_region != None  and self._loaded_training != None:
             self._loaded_training.hit_listener(hit_projector_region, projector_region_tags, 
@@ -316,6 +323,7 @@ class MainWindow:
 
         regions = self._webcam_canvas.find_overlapping(x, y, x, y)
 
+        
         # If we hit a targert region, run its commands and notify the
         # loaded plugin of the hit
         for region in reversed(regions):
@@ -333,16 +341,27 @@ class MainWindow:
 
             if "_internal_name" in tags:
                 is_hit = True
+                print('dio al objetivo blanco')
+                
                 # only run the commands and notify a hit for the top most
                 # region
+                #break
+            if is_hit == True:
+                self._sound.shoot_sound()
+                self._sound.target_sound()
                 break
-
+            else:
+                self._sound.shoot_sound()
         # Also run commands for all hidden regions that were hit
         for region in regions:
             tags = TagParser.parse_tags(self._webcam_canvas.gettags(region))
 
             if "visible" in tags and "command" in tags and tags["visible"].lower() == "false":                
                 self._canvas_manager.execute_region_commands(region, tags["command"], self._protocol_operations)
+
+        #proceso de disparo
+        #print("shoot")
+        #self.shot_sound()
 
         if self._loaded_training != None:
             self._loaded_training.shot_listener(shot, shot_list_item, is_hit)   
@@ -463,6 +482,33 @@ class MainWindow:
                                                        target_name)
         self._selected_target = target_name
 
+            # Inicia el redimensionamiento
+        self.start_resizing(event, selected_region)
+
+    #test
+    def resize_target(self, event):
+        if not self._selected_target:
+            return
+
+        step = 2
+        if event.keysym == "minus":
+            step = -2
+
+        coords = self._webcam_canvas.coords(self._selected_target)
+        if len(coords) < 4:
+            return
+
+        min_x, min_y = min(coords[0::2]), min(coords[1::2])
+        max_x, max_y = max(coords[0::2]), max(coords[1::2])
+
+        new_coords = [
+            min_x - step, min_y - step,
+            max_x + step, max_y + step
+        ]
+
+        self._webcam_canvas.coords(self._selected_target, new_coords)
+    #test
+
     def canvas_delete_target(self, event):
         if (self._selected_target):
             for target in self._targets:
@@ -479,6 +525,16 @@ class MainWindow:
             self._projector_arena.set_training_protocol(self._loaded_training)
 
     def load_training(self, plugin):
+        # Obtener la ruta del archivo __init__.py desde el módulo
+        plugin_path = os.path.dirname(plugin.__file__)
+        
+        # Obtener el nombre del directorio del plugin
+        plugin_name = os.path.basename(plugin_path)
+        
+        # Crear la ruta completa al archivo __init__.py
+        protocols_dir = "training_protocols"
+        plugin_location = os.path.join(protocols_dir, plugin_name, "__init__.py")
+        
         targets = self._canvas_manager.aggregate_targets(self._targets)
         targets.extend(self._projector_arena.aggregate_targets())
 
@@ -488,9 +544,14 @@ class MainWindow:
         if self._protocol_operations:
             self._protocol_operations.destroy()
 
+        # Cargar el módulo __init__.py desde la ubicación del plugin
+        spec = importlib.util.spec_from_file_location("__init__", plugin_location)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        # Asume que el módulo tiene un método 'load' que se puede llamar
         self._protocol_operations = ProtocolOperations(self._webcam_canvas, self)
-        self._loaded_training = imp.load_module("__init__", *plugin).load(
-            self._window, self._protocol_operations, targets)
+        self._loaded_training = module.load(self._window, self._protocol_operations, targets)
 
         self._projector_arena.set_training_protocol(self._loaded_training)
 
@@ -696,6 +757,7 @@ class MainWindow:
 
         self._webcam_canvas.bind('<ButtonPress-1>', self.canvas_click)
         self._webcam_canvas.bind('<Delete>', self.canvas_delete_target)
+
         # Click to shoot
         if self._preferences[configurator.DEBUG]:
             self._webcam_canvas.bind('<Shift-ButtonPress-1>', self.canvas_click_red)
@@ -740,6 +802,30 @@ class MainWindow:
         file_menu.add_command(label="Exit", command=self.quit)
         menu_bar.add_cascade(label="File", menu=file_menu)
 
+        # Menú para seleccionar placa de sonido
+        settings_menu = Tkinter.Menu(menu_bar, tearoff=False)
+        audio_menu = Tkinter.Menu(settings_menu, tearoff=False)
+
+        # Obtener la lista de dispositivos de audio disponibles
+        self.device_list = self._sound._device_check()  # Aquí obtienes la lista de dispositivos
+        self.device_indices = {name: idx for idx, name in enumerate(self.device_list)}  # Crear un diccionario de índices
+
+        # Crear las opciones del menú desplegable con los dispositivos de audio disponibles
+        self.selected_device = Tkinter.StringVar()  # Variable para almacenar la selección
+        self.selected_device.set(self.device_list[0])  # Establecer el valor inicial
+
+        for device in self.device_list:
+            audio_menu.add_radiobutton(
+                label=device, 
+                variable=self.selected_device,
+                value=device,  # Asignar el nombre del dispositivo como valor
+                command=self.update_selected_device
+            )
+
+        settings_menu.add_cascade(label="Audio Device", menu=audio_menu)
+        menu_bar.add_cascade(label="Settings", menu=settings_menu)
+
+
         # Update TOGGLE_VISIBILTY_INDEX if another command is added
         # before the high targets command
         self._targets_menu = Tkinter.Menu(menu_bar, tearoff=False)
@@ -777,6 +863,14 @@ class MainWindow:
             state=Tkinter.DISABLED)
         menu_bar.add_cascade(label="Projector", menu=self._projector_menu)
 
+
+    def update_selected_device(self):
+        """Callback para actualizar el dispositivo de audio seleccionado"""
+        selected_device_name = self.selected_device.get()
+        idevice = self.device_indices.get(selected_device_name, None)
+        self._sound.setDevice(idevice)  # Obtener el índice del dispositivo
+        print(f"Dispositivo de audio seleccionado: {selected_device_name}, Índice: {idevice}")
+
     def callback_factory(self, func, name):
         return lambda: func(name)
 
@@ -797,6 +891,24 @@ class MainWindow:
 
         return target_list_menu
 
+    def Orig_create_training_list(self, menu, func):
+        protocols_dir = "training_protocols"
+
+        plugin_candidates = os.listdir(protocols_dir)
+        for candidate in plugin_candidates:
+            plugin_location = os.path.join(protocols_dir, candidate)
+            if (not os.path.isdir(plugin_location) or
+                not "__init__.py" in os.listdir(plugin_location)):
+                continue
+            #plugin_info = imp.find_module("__init__", [plugin_location])
+            spec = importlib.util.spec_from_file_location("__init__", plugin_location + "/__init__.py")
+            plugin_info = importlib.util.module_from_spec(spec)
+            
+            training_info = imp.load_module("__init__", *plugin_info).get_info()
+            menu.add_radiobutton(label=training_info["name"],
+                command=self.callback_factory(self.load_training, plugin_info),
+                variable=self._training_selection, value=training_info["name"])
+
     def create_training_list(self, menu, func):
         protocols_dir = "training_protocols"
 
@@ -806,11 +918,21 @@ class MainWindow:
             if (not os.path.isdir(plugin_location) or
                 not "__init__.py" in os.listdir(plugin_location)):
                 continue
-            plugin_info = imp.find_module("__init__", [plugin_location])
-            training_info = imp.load_module("__init__", *plugin_info).get_info()
-            menu.add_radiobutton(label=training_info["name"],
+            
+            # Cargar el módulo
+            module_name = "__init__"
+            spec = importlib.util.spec_from_file_location(module_name, os.path.join(plugin_location, "__init__.py"))
+            plugin_info = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(plugin_info)
+            
+            # Obtener la información del módulo
+            training_info = plugin_info.get_info()
+            menu.add_radiobutton(
+                label=training_info["name"],
                 command=self.callback_factory(self.load_training, plugin_info),
-                variable=self._training_selection, value=training_info["name"])
+                variable=self._training_selection,
+                value=training_info["name"]
+            )
 
     def __init__(self, config):
         self._shots = []
@@ -832,6 +954,9 @@ class MainWindow:
         self._projector_calibrator = ProjectorCalibrator()
         self._calibrate_projector = False
         self._projector_calibrated = False
+
+
+        self._sound  = Sound_manager()
 
         self._cv = cv2.VideoCapture(self._preferences[configurator.VIDCAM])
 
@@ -889,6 +1014,10 @@ class MainWindow:
             self._logger.critical("Video capturing could not be initialized either " +
                 "because there is no webcam or we cannot connect to it.")
             self._shutdown = True
+        
+        # Bind keyboard events for resizing
+        self._window.bind("<plus>", self.resize_target)
+        self._window.bind("<minus>", self.resize_target)
 
     def main(self):
         if not self._shutdown:

@@ -10,7 +10,7 @@ from tag_editor_popup import TagEditorPopup
 from target_pickler import TargetPickler
 import tkinter as Tkinter
 from tkinter import filedialog
-from tkinter import messagebox
+from tkinter import messagebox as tkMessageBox
 from tkinter import ttk
 
 CURSOR = 0

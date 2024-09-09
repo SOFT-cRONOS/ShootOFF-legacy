@@ -20,11 +20,10 @@ class ITrainingProtocol():
 	    pass
 
     def reset(self, targets):
-        # Reset the training protocols state to it's initial state.
-
-	# This method gets a fresh list of targets in case any targets
-	# have been added/removed since the protocol was initialized.
         pass
+        # Reset the training protocols state to it's initial state.
+	    # This method gets a fresh list of targets in case any targets
+	    # have been added/removed since the protocol was initialized.
 
     def destroy(self):
         # Called when a training protocol is being unloaded by the framework

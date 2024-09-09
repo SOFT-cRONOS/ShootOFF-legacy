@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 import tkinter as Tkinter
-from tkinter import messagebox
+from tkinter import messagebox as tkMessageBox
 
 class TagEditorPopup():
     def _add_tag(self, event):
