@@ -156,9 +156,10 @@ class MainWindow:
                 if min_max[0] != min_max[1]:
                     x = min_max[3][0] + sub_x
                     y = min_max[3][1] + sub_y
-
+                    
+                    #DETECCION DE COLOR LASER
                     laser_color = self.detect_laser_color(x, y)
-
+                    
                     # If we couldn't detect a laser color, it's probably not a
                     # shot
                     if laser_color is not None and self._preferences[configurator.IGNORE_LASER_COLOR] not in laser_color:
@@ -347,7 +348,6 @@ class MainWindow:
                 # region
                 #break
             if is_hit == True:
-                self._sound.shoot_sound()
                 self._sound.target_sound()
                 break
             else:
@@ -802,28 +802,28 @@ class MainWindow:
         file_menu.add_command(label="Exit", command=self.quit)
         menu_bar.add_cascade(label="File", menu=file_menu)
 
-        # Menú para seleccionar placa de sonido
-        settings_menu = Tkinter.Menu(menu_bar, tearoff=False)
-        audio_menu = Tkinter.Menu(settings_menu, tearoff=False)
+        # Menú para seleccionar distancia objetivos
+        #settings_menu = Tkinter.Menu(menu_bar, tearoff=False)
+        #target_dificult = Tkinter.Menu(settings_menu, tearoff=False)
 
         # Obtener la lista de dispositivos de audio disponibles
-        self.device_list = self._sound._device_check()  # Aquí obtienes la lista de dispositivos
-        self.device_indices = {name: idx for idx, name in enumerate(self.device_list)}  # Crear un diccionario de índices
+        #self.device_list = self._sound._device_check()  # Aquí obtienes la lista de dispositivos
+        #self.device_indices = {name: idx for idx, name in enumerate(self.device_list)}  # Crear un diccionario de índices
 
         # Crear las opciones del menú desplegable con los dispositivos de audio disponibles
-        self.selected_device = Tkinter.StringVar()  # Variable para almacenar la selección
-        self.selected_device.set(self.device_list[0])  # Establecer el valor inicial
+        #self.selected_device = Tkinter.StringVar()  # Variable para almacenar la selección
+        #self.selected_device.set(self.device_list[0])  # Establecer el valor inicial
 
-        for device in self.device_list:
-            audio_menu.add_radiobutton(
-                label=device, 
-                variable=self.selected_device,
-                value=device,  # Asignar el nombre del dispositivo como valor
-                command=self.update_selected_device
-            )
+       # for device in self.device_list:
+       #     audio_menu.add_radiobutton(
+       #         label=device, 
+       #         variable=self.selected_device,
+       #         value=device,  # Asignar el nombre del dispositivo como valor
+       #         command=self.update_selected_device
+       #     )
 
-        settings_menu.add_cascade(label="Audio Device", menu=audio_menu)
-        menu_bar.add_cascade(label="Settings", menu=settings_menu)
+       # settings_menu.add_cascade(label="Audio Device", menu=audio_menu)
+       # menu_bar.add_cascade(label="Settings", menu=settings_menu)
 
 
         # Update TOGGLE_VISIBILTY_INDEX if another command is added

@@ -45,6 +45,7 @@ class Shot:
         x = self._coord[0]
         y = self._coord[1]
 
+        #aca da el color en pantalla del punto.
         self._canvas_id = self._canvas.create_oval(
             x - self._marker_radius,
             y - self._marker_radius,
