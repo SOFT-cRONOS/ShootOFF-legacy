@@ -3,6 +3,8 @@
 # Copyright (c) 2013 phrack. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import os
+current_dir = os.path.dirname(__file__)
 
 from canvas_manager import CanvasManager
 import configurator
@@ -532,7 +534,9 @@ class MainWindow:
         plugin_name = os.path.basename(plugin_path)
         
         # Crear la ruta completa al archivo __init__.py
-        protocols_dir = "training_protocols"
+        #protocols_dir = "training_protocols"
+        protocols_dir = os.path.join(current_dir, 'training_protocols')
+
         plugin_location = os.path.join(protocols_dir, plugin_name, "__init__.py")
         
         targets = self._canvas_manager.aggregate_targets(self._targets)
@@ -892,7 +896,8 @@ class MainWindow:
         return target_list_menu
 
     def Orig_create_training_list(self, menu, func):
-        protocols_dir = "training_protocols"
+        #protocols_dir = "training_protocols"
+        protocols_dir = os.path.join(current_dir, 'training_protocols')
 
         plugin_candidates = os.listdir(protocols_dir)
         for candidate in plugin_candidates:
@@ -910,8 +915,9 @@ class MainWindow:
                 variable=self._training_selection, value=training_info["name"])
 
     def create_training_list(self, menu, func):
-        protocols_dir = "training_protocols"
-
+        #protocols_dir = "training_protocols"
+        protocols_dir = os.path.join(current_dir, 'training_protocols')
+        
         plugin_candidates = os.listdir(protocols_dir)
         for candidate in plugin_candidates:
             plugin_location = os.path.join(protocols_dir, candidate)
@@ -954,11 +960,13 @@ class MainWindow:
         self._projector_calibrator = ProjectorCalibrator()
         self._calibrate_projector = False
         self._projector_calibrated = False
-
-
+        #self._window = Tkinter.Tk()
         self._sound  = Sound_manager()
 
         self._cv = cv2.VideoCapture(self._preferences[configurator.VIDCAM])
+        #self._cv = cv2.VideoCapture(-2)
+
+
 
         if self._cv.isOpened():
             #width = self._cv.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH)
@@ -1013,7 +1021,7 @@ class MainWindow:
                 "we cannot connect to it. ShootOFF will shut down.")
             self._logger.critical("Video capturing could not be initialized either " +
                 "because there is no webcam or we cannot connect to it.")
-            self._shutdown = True
+            self._shutdown = True #True
         
         # Bind keyboard events for resizing
         self._window.bind("<plus>", self.resize_target)
@@ -1025,6 +1033,7 @@ class MainWindow:
             self._window.destroy()
 
 if __name__ == "__main__":
+
     config = Configurator()
 
     preferences = config.get_preferences()

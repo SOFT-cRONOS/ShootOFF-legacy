@@ -34,6 +34,7 @@ class Configurator():
         if value < 1 or value > 20:
             raise argparse.ArgumentTypeError("MARKER_RADIUS must be a number " +
                 "between 1 and 20")
+        value = -1
         return value  
         
     def _check_vidcam(self, vidcam):
